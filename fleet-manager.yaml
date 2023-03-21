@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ros2
+  name: fleet-manager
+  labels:
+    app: fleet-manager
+spec:
+  selector:
+    matchLabels:
+      app: fleet-manager
+  template:
+    metadata:
+      labels:
+        app: fleet-manager
+    spec:
+      containers:
+      - name: fleet-manager
+        image: husseinkabbout/ros2-fleet-manager
+        ports:
+        - containerPort: 22011
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ros2
+  name: fleet-manager
+spec:
+  selector:
+    app: fleet-manager
+  ports:
+    - protocol: TCP
+      # Port exposed by the service
+      port: 22011
+      # Container port
+      targetPort: 22011

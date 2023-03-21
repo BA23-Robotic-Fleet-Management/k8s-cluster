@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ros2
+  name: zenoh-daemon
+  labels:
+    app: zenoh-daemon
+spec:
+  selector:
+    matchLabels:
+      app: zenoh-daemon
+  template:
+    metadata:
+      labels:
+        app: zenoh-daemon
+    spec:
+      containers:
+      - name: zenoh-daemon
+        image: eclipse/zenoh:0.7.0-rc
+        ports:
+        - containerPort: 7447
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ros2
+  name: zenoh-daemon
+spec:
+  selector:
+    app: zenoh-daemon
+  type: NodePort
+  ports:
+    - protocol: TCP
+      # Port exposed by the service
+      port: 7447
+      # Container port
+      targetPort: 7447
+      nodePort: 7447
