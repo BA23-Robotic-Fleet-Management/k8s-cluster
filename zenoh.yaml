@@ -16,10 +16,10 @@ spec:
         app: zenoh-daemon
     spec:
       containers:
-      - name: zenoh-daemon
-        image: eclipse/zenoh:0.7.0-rc
-        ports:
-        - containerPort: 7447
+        - name: zenoh-daemon
+          image: eclipse/zenoh:0.7.0-rc
+          ports:
+            - containerPort: 7447
 ---
 apiVersion: v1
 kind: Service

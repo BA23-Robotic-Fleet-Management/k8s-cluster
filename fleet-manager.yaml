@@ -16,10 +16,13 @@ spec:
         app: fleet-manager
     spec:
       containers:
-      - name: fleet-manager
-        image: husseinkabbout/ros2-fleet-manager
-        ports:
-        - containerPort: 22011
+        - name: fleet-manager
+          image: husseinkabbout/ros2-fleet-manager
+          env:
+            - name: ZENO_DAEMON_ADDRESS
+              value: tcp/zenoh-daemon:7447
+          ports:
+            - containerPort: 22011
 ---
 apiVersion: v1
 kind: Service
