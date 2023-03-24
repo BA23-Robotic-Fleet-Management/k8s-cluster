@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fleet-manager
-          image: husseinkabbout/ros2-fleet-manager
+          image: ghcr.io/ba23-robotic-fleet-management/ros2-fleet-manager:master
           env:
             - name: ZENO_DAEMON_ADDRESS
               value: tcp/zenoh-daemon:7447
