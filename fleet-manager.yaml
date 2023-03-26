@@ -23,6 +23,15 @@ spec:
               value: tcp/zenoh-daemon:7447
           ports:
             - containerPort: 22011
+          volumeMounts:
+            - mountPath: /etc/zenoh-bridge-dds
+              name: zenoh-bridge-conf
+              readOnly: true
+      volumes:
+        - name: zenoh-bridge-conf
+          configMap:
+            defaultMode: 440
+            name: zenoh-bridge-conf
 ---
 apiVersion: v1
 kind: Service
@@ -38,3 +47,24 @@ spec:
       port: 22011
       # Container port
       targetPort: 22011
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ros2
+  name: zenoh-bridge-conf
+data:
+  config.json5: |
+    {
+      plugins: {
+        dds: {
+          domain: 1,
+        },
+      },
+      mode: "client",
+      connect: {
+        endpoints: [
+          "tcp/zenoh-daemon:7447"
+        ]
+      }
+    }
