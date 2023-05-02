@@ -59,6 +59,7 @@ data:
       plugins: {
         dds: {
           domain: 1,
+          fwd-discovery: true,
         },
       },
       mode: "client",
