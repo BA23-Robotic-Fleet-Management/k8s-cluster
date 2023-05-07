@@ -3,21 +3,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: ros2
-  name: fleet-manager
+  name: free-fleet-server
   labels:
-    app: fleet-manager
+    app: free-fleet-server
 spec:
   selector:
     matchLabels:
-      app: fleet-manager
+      app: free-fleet-server
   template:
     metadata:
       labels:
-        app: fleet-manager
+        app: free-fleet-server
     spec:
       containers:
-        - name: fleet-manager
-          image: ghcr.io/ba23-robotic-fleet-management/ros2-fleet-manager:main
+        - name: free-fleet-server
+          image: ghcr.io/ba23-robotic-fleet-management/free-fleet-server:main
           env:
             - name: ZENO_DAEMON_ADDRESS
               value: tcp/zenoh-daemon:7447
@@ -37,10 +37,10 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: ros2
-  name: fleet-manager
+  name: free-fleet-server
 spec:
   selector:
-    app: fleet-manager
+    app: free-fleet-server
   ports:
     - protocol: TCP
       # Port exposed by the service

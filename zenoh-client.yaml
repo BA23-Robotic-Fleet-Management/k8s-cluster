@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ros2
+  name: zenoh-bridge-conf
+data:
+  config.json5: |
+    {
+      plugins: {
+        dds: {
+          domain: 1,
+          fwd-discovery: true,
+        },
+      },
+      mode: "client",
+      connect: {
+        endpoints: [
+          "tcp/zenoh-daemon:7447"
+        ]
+      }
+    }
+
