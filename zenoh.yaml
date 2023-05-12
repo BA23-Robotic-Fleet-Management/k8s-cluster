@@ -18,8 +18,21 @@ spec:
       containers:
         - name: zenoh-daemon
           image: eclipse/zenoh:0.7.0-rc
+          env:
+            - name: RUST_LOG
+              value: debug
+          args: ["-c", "/etc/zenohd/server.json5"]
           ports:
             - containerPort: 7447
+          volumeMounts:
+            - mountPath: /etc/zenohd
+              name: zenoh-server-conf
+              readOnly: true
+      volumes:
+        - name: zenoh-server-conf
+          configMap:
+            defaultMode: 440
+            name: zenoh-server-conf
 ---
 apiVersion: v1
 kind: Service
@@ -37,3 +50,189 @@ spec:
       # Container port
       targetPort: 7447
       nodePort: 7447
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ros2
+  name: zenoh-server-conf
+data:
+  server.json5: |
+    /**
+     * Configuration file for the Eclipse zenoh router (service "zenohd").
+     *
+     * This file presents only the main settings. For a complete example of configuration file,
+     * see https://github.com/eclipse-zenoh/zenoh/blob/master/EXAMPLE_CONFIG.json5
+     */
+    {
+      /**
+       * The identifier (as hex-string) that zenohd must use.
+       * If not set, a random UUIDv4 will be used.
+       * WARNING: this id must be unique in your zenoh network.
+       */
+      id: "0123456789ABCDEF",
+
+      /**
+       * Which endpoints to listen on. E.g. tcp/localhost:7447.
+       * By configuring the endpoints, it is possible to tell zenoh which are the endpoints that other routers,
+       * peers, or client can use to establish a zenoh session.
+       * If none are specified, "tcp/[::]:7447" will be used (i.e. any interface)
+       */
+      listen: {
+        endpoints: [
+          // "<proto>/<address>"
+          "tcp/[::]:7447",
+          // "tls/[::]:7447",
+        ],
+      },
+      //transport: {
+      //  link: {
+      //    tls: {
+      //      root_ca_certificate: "/etc/zenohd/client-ca.pem",
+      //      client_auth: true,
+      //      server_private_key: "/etc/zenohd/server-key.pem",
+      //      server_certificate: "/etc/zenohd/server-cert.pem",
+      //    },
+      //  },
+      //},
+
+      /**
+       * Which endpoints to connect to. E.g. tcp/localhost:7447.
+       * By configuring the endpoints, it is possible to tell zenoh which router/peer to connect to at startup.
+       */
+      connect: {
+        endpoints: [
+          // "<proto>/<address>"
+        ],
+      },
+
+      /**
+       * Configuration of the scouting protocol (for discovery of other routers, peers or clients)
+       * Uncoment to change the default values.
+       */
+      // scouting: {
+      //   /* How multicast should behave */
+      //   multicast: {
+      //     /* Whether multicast scouting is enabled or not */
+      //     enabled: true,
+      //     /* The socket which should be used for multicast scouting */
+      //     address: "224.0.0.224:7446",
+      //     /* The network interface which should be used for multicast scouting */
+      //     interface: "auto", // auto selection of interface
+      //     /**
+      //      * An autoconnection mask (accepted values are bit-or-like combinations of peer, router and client).
+      //      * If the configured instance's mode intersects with this field, zenoh will automatically establish a connection with other nodes discovered through this method of scouting.
+      //      */
+      //     autoconnect: "peer|client",
+      //   },
+      // },
+
+      /**
+       * Directories where plugins configured by name should be looked for.
+       * Plugins configured by __path__ are not subject to lookup
+       */
+      plugins_search_dirs: ["/usr/lib"],
+
+      plugins: {
+        /**
+         * REST plugin configuration. Uncomment to activate it.
+         */
+        // rest: {
+        //   /* Setting this option to true allows zenohd to panic should it detect issues with this plugin.
+        //    * Setting it to false politely asks the plugin not to panic. */
+        //   __required__: true,
+        //   http_port: 8000,
+        // },
+        /**
+         * Storages plugin configuration . Uncomment to activate it and configure backends/storages
+         */
+        // storages: {
+        //   /* Storages are grouped by backend, which may implement the storage function in various ways. */
+        //   backends: {
+        //     /* The memory backend is always available, and stores values in RAM. */
+        //     memory: {
+        //       /* Each backend may manage several storages */
+        //       storages: {
+        //         /* Each storage must be named */
+        //         demo: {
+        //           key_expr: "demo/example/**",
+        //         },
+        //       },
+        //     },
+        //   },
+        // },
+      },
+    }
+
+  client-ca.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDSzCCAjOgAwIBAgIIMUjaKhekJQ4wDQYJKoZIhvcNAQELBQAwIDEeMBwGA1UE
+    AxMVbWluaWNhIHJvb3QgY2EgMzE0OGRhMCAXDTIzMDUwMTIwMzY0MloYDzIxMjMw
+    NTAxMjAzNjQyWjAgMR4wHAYDVQQDExVtaW5pY2Egcm9vdCBjYSAzMTQ4ZGEwggEi
+    MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC0pMyIsp/1V6vvzXhr+xmunVAa
+    4GnTDR1Q8Joe/UdJzYy+IIbv8S/LyqBZ1F3uyGou1wbhIhqj36fizf8x6jZdVkaE
+    imvNoqxODgMOOt/V+GPgDVlYHpHAucblYik+0WhY9FsCfrqFgiz88GvwBQ1S2hrC
+    kz5rk23ScLnFiLOxfj9R7p4OZlbgHcxgdEblgYAhgWSR/axLMiJjk9F/zicg2lUQ
+    XpOdbe0tMmM4rnOb22w/kzFCBimGsqEK3/3lxIcKFGOqRVeJF5Qg74FC8XlXUMpX
+    akcX8fh2zrwlHqiCHaK7JxOVy6+0cBUxjycLXCzw4pZ3QvD4fdkUEA7pj55xAgMB
+    AAGjgYYwgYMwDgYDVR0PAQH/BAQDAgKEMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggr
+    BgEFBQcDAjASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBRfd4YJSD3CDTAV
+    DmAQ5rzPMi3wMjAfBgNVHSMEGDAWgBRfd4YJSD3CDTAVDmAQ5rzPMi3wMjANBgkq
+    hkiG9w0BAQsFAAOCAQEAfdeI1i/FxCCdk6LEaRbvu0KIKonkzXQ1E6LFvbroNrgd
+    8dfLl7zDfzHSCLQRwvHTtvW89dqtXFZanYTnpWA1+uc7TlnBOmlNDALwNs0Byw0H
+    3w00AS47kAgEc3ZCTgpgIJZpqciKm7N2yg2NwzUhm/osOhe4QbvyJwz7JwUeW6uk
+    +uH4aZ70c/xRvMrqON/ygZ1p+o3N8Zhflj6xmwCnYNez1JiEqsxEBHMwWA4UzGuB
+    r5cFajGhzWl+Lrgy+CjfX1A2/TKVW2/NoBzTupHCqi1PyTgX7D10EJaR7QS/9Evh
+    n4Nd84xB4dVztB6kV1XOaWwTT2hMUfcIIS9BS+JOlA==
+    -----END CERTIFICATE-----
+
+  server-key.pem: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEAy/izsGFH9MtqPj3mg/D7E/FNVZv1bPNUBjQAr34P6ceWwSUK
+    ZoSY9WxBp/XhL2ZaU3ijxnKXTKQqYKdd8IXfSiLLMojxLYyzw53MT1is+oplT8Db
+    8m3n2Em8Vs9GpEXw0JznHLsfzhDmn3L+GXZqQdR4hoUAcokcq8VTH/7wqCE4Bzzg
+    KoceFSzmqjkoSF7RS++qH5z0RAqrZgfi6M0C1PJTPndcLV2+h16QO+OLDjWYlzjn
+    B2JBroMH8P+6WR69LJm8yPjWJpL7Xz4SfQIu8umGdHfS48VpriA0DRqykmHld0eW
+    HZ1HU3xdHzT7YSJAyPDehGyuoptjePMP31hMrQIDAQABAoIBABi7yLZLpZkWjYSM
+    pwY604dgjFskNUeH3hl+dtLQ+4cCr9It9qvlylKAVRnT5AGGbM+QYnOu84/UnFrq
+    EKcY5LGttGwlVPGMDURcPykj/J3I6G4aWdF06Fc+4bq5GbzTylbRn+jI/BtVy1Fs
+    dUmLJWlkJVVSjXJWFAb0P5cyp+YLIYTlTcKNcwIwMURFbpQrHXFhgHDH4u97YD7g
+    O+V4JF07hAAAaEDOIRpPUrtrvBAY3h4kcRypHyAPIWm1m+360/e8+CPBCu3eO4Vr
+    55kULSX97a1zt9R2k1AEvxj4h0nAxhO8Q+lpan1u6Rgz2JmX4eg30WtFTCs69P2p
+    jFr+j+ECgYEA0JiMdTtZpYyS16/MIS3PR7T+3vxgtuvre+1Uju/BtXQqwVXryheK
+    T/Fz1zj+012aH4klC3ZwVI3QJSwUiuk+v5ISIrgrkc7XoWXTzMmf+YOQXiGxyUq2
+    bAD8zphtEoxXY5IT+xJ9H5cyri/x/DA7IOdezaS/elWLWbomN4fkwikCgYEA+lMe
+    wn62vw95Dqxh60CEmPB+5INAwjZy4nkrEpbS/6KQMAcBhyh3FD670ZDwhjcqPF1W
+    NYjy1cylTwss6YwRy1UcoAB2uD/bQy2mzPcivbE44+wIQloh+Mr/if6xSgE1AJtC
+    wd77kF6ZK0ZWI1IAr5T51kZRUUauKqXAw7UhbuUCgYB1aBdOeJxJkKip25nCZv1O
+    9/GoYlaxPnJpazh3xzy5O+xAq3KuabeArX8s+Th8kSeJbnC6Vex9uuAXvArH8OZP
+    fxDUF+L2C3zUq/KdRjLThpiAUui1SmcIvTmNsr9ZfEJHmdXDMDHa0QhGgFfsQN1W
+    9MMobf0UBwgK9bpC8SrxmQKBgBRDUDUcPry+iuUWLSL26QTcStlCiqZt8+TDPCpY
+    DSJmTVel6YjATMtVvKxdGCs1IfUa9RSGTmniE+uPEwagsPwNmrCU+Qc3HA+XDW5/
+    /s7uHpXMkGqWkzNpcz//XuiHqnuvFbtNyn1IOwvWuLhJNgcAfyzKKmDy4LxRCIaP
+    DfLFAoGBAMoowSotXb0GZXQb7T6AwjPVxzLWF65GWK2Ev3O0Ztgy31bguXVpFfvR
+    9Qy4vzcBMXAf+6mV9NKiJ24h2EoxwIGjN4dgl4LCE+k1JSJI8uyC1ueP2KEnmu+F
+    8GRHjcr2G+er6NezcSpYwucrpat5h9nc3MCONxaWtntsEvxXFtLP
+    -----END RSA PRIVATE KEY-----
+
+  server-cert.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDSjCCAjKgAwIBAgIIQgiwt7GDsu4wDQYJKoZIhvcNAQELBQAwIDEeMBwGA1UE
+    AxMVbWluaWNhIHJvb3QgY2EgNWQzNmZmMB4XDTIzMDUwMTIwMzYzNloXDTI1MDUz
+    MTIwMzYzNlowIjEgMB4GA1UEAxMXemVub2guYmEtZmxlZXQtbWdtdC5sb2MwggEi
+    MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDL+LOwYUf0y2o+PeaD8PsT8U1V
+    m/Vs81QGNACvfg/px5bBJQpmhJj1bEGn9eEvZlpTeKPGcpdMpCpgp13whd9KIssy
+    iPEtjLPDncxPWKz6imVPwNvybefYSbxWz0akRfDQnOccux/OEOafcv4ZdmpB1HiG
+    hQByiRyrxVMf/vCoITgHPOAqhx4VLOaqOShIXtFL76ofnPRECqtmB+LozQLU8lM+
+    d1wtXb6HXpA744sONZiXOOcHYkGugwfw/7pZHr0smbzI+NYmkvtfPhJ9Ai7y6YZ0
+    d9LjxWmuIDQNGrKSYeV3R5YdnUdTfF0fNPthIkDI8N6EbK6im2N48w/fWEytAgMB
+    AAGjgYUwgYIwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggr
+    BgEFBQcDAjAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFG2uyU91Z347WrWIdIln
+    FZWYGYlHMCIGA1UdEQQbMBmCF3plbm9oLmJhLWZsZWV0LW1nbXQubG9jMA0GCSqG
+    SIb3DQEBCwUAA4IBAQBuAR6A54FlTg+XbyjEEXYTNID8x0s4NntVdYzmbKRdRzvF
+    qGL1Yuufy25TaH6qCAN+D4ZJCjpuoSYczq6nTCIzp09FCsRSv/aFbfYumBhMVAHl
+    wkWm4bJnF/CwE3QNuPBJblOKCJNpRP9ZdeRt9rA1E/EbCwR0kunZQFNGXaDhyg0j
+    h6kmYAdfgZ0GP4Jez3QFy6nh7sXLzP0x/F1osKQuO9e81bfYvBOTZtrYEvdxsj2D
+    PI6vLIz/0OtoRGBfcAI/lTAW3WDpSVi9L0tdQo/ak24gNRS/zT/1fu+I3K7KHci5
+    ETmdTt8K5/tqJJioS2C5IQotxHr0oR40sKTdZojS
+    -----END CERTIFICATE-----
