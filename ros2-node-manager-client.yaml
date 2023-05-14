@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ros2-node-manager-cli
+  namespace: ros2
+  labels:
+    app: ros2-node-manager-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ros2-node-manager-cli
+  template:
+    metadata:
+      name: ros2-node-manager-cli
+      labels:
+        app: ros2-node-manager-cli
+    spec:
+      containers:
+        - image: ghcr.io/ba23-robotic-fleet-management/ros2-node-manager-client:main
+          name: ros2-node-manager-cli
+          command: ["bash"]
+          args: ["-c",  "trap : TERM INT; sleep infinity & wait"]
+      restartPolicy: Always
