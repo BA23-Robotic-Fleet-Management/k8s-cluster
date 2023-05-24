@@ -18,6 +18,7 @@ spec:
     spec:
       containers:
         - image: ghcr.io/ba23-robotic-fleet-management/ros2-node-manager-client:main
+          imagePullPolicy: Always
           name: ros2-node-manager-cli
           command: ["bash"]
           args: ["-c",  "trap : TERM INT; sleep infinity & wait"]
