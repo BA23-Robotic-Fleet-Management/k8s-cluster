@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ros2
+  name: free-fleet-client
+  labels:
+    app: free-fleet-client
+spec:
+  selector:
+    matchLabels:
+      app: free-fleet-client
+  template:
+    metadata:
+      labels:
+        app: free-fleet-client
+    spec:
+      containers:
+        - name: free-fleet-client
+          image: ghcr.io/ba23-robotic-fleet-management/free-fleet-client:main
+          imagePullPolicy: Always
+          env:
+            - name: ZENO_DAEMON_ADDRESS
+              value: tcp/zenoh-daemon:7447
+            - name: ROBOT_NAME
+              value: robot1
+          ports:
+            - containerPort: 22011
+          volumeMounts:
+            - mountPath: /etc/zenoh-bridge-dds
+              name: zenoh-bridge-conf
+              readOnly: true
+      volumes:
+        - name: zenoh-bridge-conf
+          configMap:
+            defaultMode: 440
+            name: zenoh-bridge-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ros2
+  name: free-fleet-client
+spec:
+  selector:
+    app: free-fleet-client
+  ports:
+    - protocol: TCP
+      # Port exposed by the service
+      port: 22011
+      # Container port
+      targetPort: 22011
