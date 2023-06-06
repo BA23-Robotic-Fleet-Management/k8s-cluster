@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fleet-manager
-          image: ghcr.io/ba23-robotic-fleet-management/ros2-fleet-manager:main
+          image: ghcr.io/ba23-robotic-fleet-management/free-fleet-rmf-adapter:main
           imagePullPolicy: Always
           env:
             - name: ZENO_DAEMON_ADDRESS
