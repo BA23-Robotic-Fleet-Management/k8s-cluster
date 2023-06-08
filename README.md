@@ -1,26 +1,28 @@
-# Experimental Kubernetes cluster
+# Experimental Kubernetes Cluster
 
-This repository contains example kubernetes manifests to deploy the ROS2 fleet manager
-to kubernetes.
+This repository contains sample Kubernetes manifests for deploying the ROS2 [fleet management system](https://github.com/BA23-Robotic-Fleet-Management/fleet_management_system) to Kubernetes.
 
 ## Setup
 
-### Setting up kubernetes with microk8s
+### Setting up Kubernetes with Microk8s
 
 ```bash
+sudo -i
 apt install snapd
 snap install microk8s --classic
 microk8s start
 microk8s status --wait
 microk8s enable dns
 microk8s config > ~/.kube/config
-# This is only set to allow binding the zenoh daemon to port 7447 on the server.
-# It is not required if you are planing to run the zenoh daemon in the standard
-# kubernetes port range
+# This is only set to allow the Zenoh daemon to bind to port 7447 on the server.
+# It is not required if you are planing to run the Zenoh daemon in the standard
+# Kubernetes port range
 echo "--service-node-port-range=7000-40000" >> /var/snap/microk8s/4595/args/kube-apiserver
 ```
 
-### Installing k9s for convenience access to k8s:
+### Installing k9s
+
+This is only required for more convenient access and management to the cluster.
 
 ```bash
 mkdir k9s
@@ -32,14 +34,14 @@ sudo install k9s /usr/local/bin/k9s
 
 ## Deployment
 
-Create ros namespace:
+Creating the Kubernetes namespace:
 
-```
-kubectl create namespace ros2
+```bash
+sudo kubectl create namespace ros2
 ```
 
-Apply all kubernetes manifests:
+Applying all Kubernetes manifests:
 
-```
-kubectl apply -f manifests/
+```bash
+sudo kubectl apply -f manifests/
 ```
