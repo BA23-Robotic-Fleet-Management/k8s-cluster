@@ -1,6 +1,6 @@
 # Experimental Kubernetes Cluster
 
-This repository contains sample Kubernetes manifests for deploying the ROS2 [fleet management system](https://github.com/BA23-Robotic-Fleet-Management/fleet_management_system) to Kubernetes.
+This repository contains sample Kubernetes manifests for deploying the ROS 2 [fleet management system](https://github.com/BA23-Robotic-Fleet-Management/fleet_management_system) to Kubernetes.
 
 ## Setup
 
